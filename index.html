@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สแกนบาร์โค้ด iOS</title>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        video { width: 100%; height: auto; border: 2px solid black; }
+        #result { font-size: 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>📸 เปิดกล้องสแกนบาร์โค้ด (iOS/Android)</h2>
+    <video id="video"></video>
+    <p id="result">📢 รอการสแกน...</p>
+
+    <script>
+        const codeReader = new ZXing.BrowserBarcodeReader();
+        const videoElement = document.getElementById('video');
+
+        codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
+            if (result) {
+                document.getElementById('result').innerText = "✅ บาร์โค้ด: " + result.text;
+
+                // 📌 ส่งไปยัง Google Apps Script
+                fetch("https://script.google.com/macros/s/AKfycbwj1wiaXghK2TjpzXw0SWACC2t_VUuIlIXO4SwEOK_ngJJdCDUJZRp0egJeyIh66eLn/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ barcode: result.text })
+                }).then(response => response.text())
+                  .then(data => console.log("📤 Response:", data))
+                  .catch(error => console.error("❌ Error:", error));
+            }
+        });
+
+        // 📌 ตรวจสอบสิทธิ์กล้อง
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => { console.log("📷 กล้องพร้อมใช้งาน"); })
+            .catch((err) => { console.error("❌ ไม่สามารถเปิดกล้อง:", err); });
+    </script>
+</body>
+</html>
